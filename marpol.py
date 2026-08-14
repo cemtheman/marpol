@@ -219,7 +219,7 @@ def generate_pdf(detay_veri):
     story.append(Spacer(1, 15))
 
     # Not
-    story.append(Paragraph("<b>Yasal Not:</b> Bu belge 2009/3 sayılı Tebliğ hükümlerine göre bilgilendirme amacıyla otomatik üretilmiştir. Resmi tahsilatlarda ilgili işletmenin resmi tarifesi esastır.", style_subtitle))
+    story.append(Paragraph("<b>Yasal Not:</b> Hesaplama 2009/3 sayılı Tebliğ hükümlerine göre yapılarak bu rapor bilgilendirme amacıyla otomatik üretilmiştir. Resmi tahsilatlarda ilgili işletmenin tarifesi esastır.", style_subtitle))
 
     doc.build(story)
     buffer.seek(0)

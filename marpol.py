@@ -36,46 +36,49 @@ st.markdown("""
 
 @st.cache_resource
 def setup_turkish_fonts():
-    """PDF için tam Türkçe karakter (UTF-8) destekli fontları kaydeder."""
-    reg_path, bold_path = None, None
-    
-    # 1. Sistem Fontlarını Kontrol Et (Linux / Windows / Mac)
-    if os.path.exists("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"):
-        reg_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
-        bold_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
+    """Streamlit Cloud ve tüm sunucularda %100 Türkçe destekli font yükler."""
+    reg_path = None
+    bold_path = None
+
+    # Linux / Streamlit Cloud Font Yolları
+    sys_reg = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
+    sys_bold = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
+
+    if os.path.exists(sys_reg) and os.path.exists(sys_bold):
+        reg_path = sys_reg
+        bold_path = sys_bold
     elif os.path.exists("C:\\Windows\\Fonts\\arial.ttf"):
         reg_path = "C:\\Windows\\Fonts\\arial.ttf"
         bold_path = "C:\\Windows\\Fonts\\arialbd.ttf"
-    elif os.path.exists("/Library/Fonts/Arial.ttf"):
-        reg_path = "/Library/Fonts/Arial.ttf"
-        bold_path = "/Library/Fonts/Arial Bold.ttf"
-    
-    # 2. Sistemde Yoksa Yerel İndirilmiş Fontu Kontrol Et / Yükle
-    if not reg_path or not os.path.exists(reg_path):
-        if not os.path.exists("Roboto-Regular.ttf"):
-            try:
-                urllib.request.urlretrieve("https://github.com/google/fonts/raw/main/ofl/roboto/Roboto-Regular.ttf", "Roboto-Regular.ttf")
-            except Exception:
-                pass
-        if os.path.exists("Roboto-Regular.ttf"):
-            reg_path = "Roboto-Regular.ttf"
+    else:
+        # Sunucuda yoksa CDN üzerinden indir ve yerel klasöre kaydet
+        try:
+            url_reg = "https://cdn.jsdelivr.net/gh/dejavu-fonts/dejavu-fonts@master/ttf/DejaVuSans.ttf"
+            url_bold = "https://cdn.jsdelivr.net/gh/dejavu-fonts/dejavu-fonts@master/ttf/DejaVuSans-Bold.ttf"
+            
+            if not os.path.exists("DejaVuSans.ttf"):
+                req_reg = urllib.request.Request(url_reg, headers={'User-Agent': 'Mozilla/5.0'})
+                with urllib.request.urlopen(req_reg) as resp, open("DejaVuSans.ttf", "wb") as f:
+                    f.write(resp.read())
+            
+            if not os.path.exists("DejaVuSans-Bold.ttf"):
+                req_bold = urllib.request.Request(url_bold, headers={'User-Agent': 'Mozilla/5.0'})
+                with urllib.request.urlopen(req_bold) as resp, open("DejaVuSans-Bold.ttf", "wb") as f:
+                    f.write(resp.read())
+                    
+            reg_path = "DejaVuSans.ttf"
+            bold_path = "DejaVuSans-Bold.ttf"
+        except Exception:
+            pass
 
-    if not bold_path or not os.path.exists(bold_path):
-        if not os.path.exists("Roboto-Bold.ttf"):
-            try:
-                urllib.request.urlretrieve("https://github.com/google/fonts/raw/main/ofl/roboto/Roboto-Bold.ttf", "Roboto-Bold.ttf")
-            except Exception:
-                pass
-        if os.path.exists("Roboto-Bold.ttf"):
-            bold_path = "Roboto-Bold.ttf"
-
-    # Fontları ReportLab'a kaydet
+    # Fontları ReportLab'e kaydet
     if reg_path and os.path.exists(reg_path):
         pdfmetrics.registerFont(TTFont('TRFont', reg_path))
         if bold_path and os.path.exists(bold_path):
             pdfmetrics.registerFont(TTFont('TRFont-Bold', bold_path))
         else:
             pdfmetrics.registerFont(TTFont('TRFont-Bold', reg_path))
+        
         registerFontFamily('TRFont', normal='TRFont', bold='TRFont-Bold')
         return 'TRFont', 'TRFont-Bold'
     

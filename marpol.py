@@ -1,5 +1,26 @@
+import urllib.request
+import xml.etree.ElementTree as ET
 import streamlit as st
-from datetime import datetime, time
+import datetime
+
+@st.cache_data(ttl=3600)  # Kuru 1 saat (3600 sn) boyunca önbellekte tutar
+def get_tcmb_eur_kuru():
+    """TCMB resmi sitesinden güncel EUR döviz satış kurunu çeker."""
+    try:
+        url = "https://www.tcmb.gov.tr/kurlar/today.xml"
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=5) as response:
+            xml_data = response.read()
+        
+        root = ET.fromstring(xml_data)
+        for currency in root.findall('Currency'):
+            if currency.get('Kod') == 'EUR':
+                forex_selling = currency.find('ForexSelling').text
+                return float(forex_selling)
+    except Exception as e:
+        # Bağlantı kopması vs. durumunda varsayılan yedek kur
+        return 55.39
+
 
 # Sayfa Yapılandırması
 st.set_page_config(
@@ -73,11 +94,8 @@ with col_sol:
     sabit_ucret_odendi_mi = st.checkbox("Sabit Ücret Daha Önce Başka Limanda Ödendi mi? (Madde 6)")
     
     st.subheader("📅 Tarih ve Mesai Bilgisi")
-    islem_tarihi = st.date_input("İşlem Tarihi", value=datetime.now())
-    islem_saati = st.time_input("İşlem Saati", value=time(10, 0))
-    
-    st.subheader("💶 Döviz Kuru")
-    eur_try_kuru = st.number_input("EUR / TRY Kuru", min_value=1.0, value=55.39, step=0.1)
+    islem_tarihi = st.date_input("İşlem Tarihi", value=datetime.datetime.now())
+    islem_saati = st.time_input("İşlem Saati", value=datetime.time(10, 0))
 
 with col_sag:
     st.subheader("🛢️ Verilecek Atık Miktarları (m³)")
@@ -87,6 +105,18 @@ with col_sag:
     ek4_pissu_m3 = st.number_input("MARPOL EK-IV: Pis Su (m³)", min_value=0.0, value=1.0, step=0.5)
     ek5_evsel_m3 = st.number_input("MARPOL EK-V: Evsel / Katı Çöp (m³)", min_value=0.0, value=1.0, step=0.5)
 
+    st.subheader("💶 Döviz Kuru")
+
+    # TCMB'den otomatik çekilen kur
+    otomatik_kur = get_tcmb_eur_kuru()
+    eur_try_kuru = st.number_input(
+    "EUR / TRY Kuru (TCMB Otomatik / Manuel Değiştirilebilir)", 
+    min_value=1.0, 
+    value=otomatik_kur, 
+    step=0.01,
+    format="%.4f"
+)
+    st.caption(f"💡 *TCMB güncel Euro satış kuru otomatik çekilmiştir ({otomatik_kur:.4f} ₺). İsterseniz kutudan müdahale edebilirsiniz.*")
 # ---------------------------------------------------------
 # HESAPLAMA MOTORU
 # ---------------------------------------------------------
@@ -139,7 +169,7 @@ atik_ucreti_tavan_eur = (
 
 # Mesai Dışı Zammı (Pazar günü veya 08:00-17:00 dışı) %25
 is_pazar = islem_tarihi.weekday() == 6
-is_mesai_disi = not (time(8, 0) <= islem_saati <= time(17, 0))
+is_mesai_disi = not (datetime.time(8, 0) <= islem_saati <= datetime.time(17, 0))
 
 if is_pazar or is_mesai_disi:
     atik_ucreti_tavan_eur *= 1.25

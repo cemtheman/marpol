@@ -46,15 +46,19 @@ def setup_turkish_fonts():
     elif os.path.exists("C:\\Windows\\Fonts\\arial.ttf"):
         reg_path = "C:\\Windows\\Fonts\\arial.ttf"
         bold_path = "C:\\Windows\\Fonts\\arialbd.ttf"
+    elif os.path.exists("/Library/Fonts/Arial.ttf"):
+        reg_path = "/Library/Fonts/Arial.ttf"
+        bold_path = "/Library/Fonts/Arial Bold.ttf"
     
-    # 2. Sistemde Yoksa Google Fonts'tan Roboto İndir/Kullan
+    # 2. Sistemde Yoksa Yerel İndirilmiş Fontu Kontrol Et / Yükle
     if not reg_path or not os.path.exists(reg_path):
         if not os.path.exists("Roboto-Regular.ttf"):
             try:
                 urllib.request.urlretrieve("https://github.com/google/fonts/raw/main/ofl/roboto/Roboto-Regular.ttf", "Roboto-Regular.ttf")
             except Exception:
                 pass
-        reg_path = "Roboto-Regular.ttf" if os.path.exists("Roboto-Regular.ttf") else None
+        if os.path.exists("Roboto-Regular.ttf"):
+            reg_path = "Roboto-Regular.ttf"
 
     if not bold_path or not os.path.exists(bold_path):
         if not os.path.exists("Roboto-Bold.ttf"):
@@ -62,7 +66,8 @@ def setup_turkish_fonts():
                 urllib.request.urlretrieve("https://github.com/google/fonts/raw/main/ofl/roboto/Roboto-Bold.ttf", "Roboto-Bold.ttf")
             except Exception:
                 pass
-        bold_path = "Roboto-Bold.ttf" if os.path.exists("Roboto-Bold.ttf") else None
+        if os.path.exists("Roboto-Bold.ttf"):
+            bold_path = "Roboto-Bold.ttf"
 
     # Fontları ReportLab'a kaydet
     if reg_path and os.path.exists(reg_path):

@@ -1,3 +1,4 @@
+import os
 import urllib.request
 import xml.etree.ElementTree as ET
 import streamlit as st
@@ -65,11 +66,27 @@ def get_sabit_ucret_ve_haklar(grt):
         return 720, 13, 15, 5
 
 # ---------------------------------------------------------
-# ARAYÜZ (STREAMLIT)
+# HEADER / LOGO ALANI
 # ---------------------------------------------------------
 
-st.title("🚢 Gemilerden Atık Alım Hizmeti Ücret Hesaplayıcı")
-st.caption("Tebliğ No: 2009/3 Çerçevesinde Asgari ve Azami Fiyat Hesaplama Modülü")
+logo_dosyasi = "mbblogo.svg"
+
+if os.path.exists(logo_dosyasi):
+    col_logo, col_title = st.columns([1, 4], gap="medium")
+    with col_logo:
+        st.image(logo_dosyasi, width=170)
+    with col_title:
+        st.title("Gemilerden Atık Alım Hizmeti Ücret Hesaplayıcı")
+        st.caption("Tebliğ No: 2009/3 Çerçevesinde Asgari ve Azami Fiyat Hesaplama Modülü")
+else:
+    st.title("🚢 Gemilerden Atık Alım Hizmeti Ücret Hesaplayıcı")
+    st.caption("Tebliğ No: 2009/3 Çerçevesinde Asgari ve Azami Fiyat Hesaplama Modülü")
+
+st.divider()
+
+# ---------------------------------------------------------
+# ARAYÜZ (GİRDİ ALANLARI)
+# ---------------------------------------------------------
 
 col_sol, col_sag = st.columns([1, 1], gap="large")
 

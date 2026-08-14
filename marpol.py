@@ -13,7 +13,8 @@ st.markdown("""
     <style>
     .main { padding: 1.5rem; }
     .stButton>button { width: 100%; background-color: #0066cc; color: white; font-weight: bold; }
-    .metric-box { background-color: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 5px solid #0066cc; }
+    .metric-card-tavan { background-color: #f8d7da; padding: 15px; border-radius: 8px; border-left: 5px solid #dc3545; color: #721c24; }
+    .metric-card-taban { background-color: #d4edda; padding: 15px; border-radius: 8px; border-left: 5px solid #28a745; color: #155724; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -22,7 +23,7 @@ st.markdown("""
 # ---------------------------------------------------------
 
 def get_sabit_ucret_ve_haklar(grt):
-    """GRT'ye göre Sabit Ücret (€) ve Ücretsiz Atık Haklarını ($m^3$) döndürür."""
+    """GRT'ye göre Sabit Ücret (€) ve Ücretsiz Atık Haklarını (m³) döndürür."""
     if grt <= 1000:
         return 80, 1, 2, 1
     elif grt <= 5000:
@@ -47,7 +48,7 @@ def get_sabit_ucret_ve_haklar(grt):
 # ---------------------------------------------------------
 
 st.title("🚢 Gemilerden Atık Alım Hizmeti Ücret Hesaplayıcı")
-st.caption("Tebliğ No: 2009/3 Çerçevesinde Güncel Hesaplama Modülü")
+st.caption("Tebliğ No: 2009/3 Çerçevesinde Asgari ve Azami Fiyat Hesaplama Modülü")
 
 col_sol, col_sag = st.columns([1, 1], gap="large")
 
@@ -85,9 +86,6 @@ with col_sag:
     sintine_slac_yag_m3 = st.number_input("MARPOL EK-I: Sintine Suyu, Slaç, Atık Yağ (m³)", min_value=0.0, value=5.0, step=0.5)
     ek4_pissu_m3 = st.number_input("MARPOL EK-IV: Pis Su (m³)", min_value=0.0, value=2.0, step=0.5)
     ek5_evsel_m3 = st.number_input("MARPOL EK-V: Evsel / Katı Çöp (m³)", min_value=0.0, value=1.0, step=0.5)
-    
-    st.subheader("🏷️ İndirim Oranı (Madde 13)")
-    esnek_indirim = st.slider("Uygulanacak İndirim Oranı (%)", min_value=0, max_value=40, value=0) / 100.0
 
 # ---------------------------------------------------------
 # HESAPLAMA MOTORU
@@ -101,7 +99,7 @@ if gemi_turu in ["kamu_devlet", "yat_tekne"] or sabit_ucret_odendi_mi:
     sabit_ucret_eur = 0
     ek1_hak = ek4_hak = ek5_hak = 0
 
-# Ücrete Tabi Miktarlar
+# Ücrete Tabi Miktarlar (Ücretsiz Haklar Düşüldükten Sonra)
 ucretli_slop = slop_balast_m3
 ucretli_ek1 = max(0.0, sintine_slac_yag_m3 - ek1_hak)
 ucretli_ek4 = max(0.0, ek4_pissu_m3 - ek4_hak)
@@ -131,50 +129,56 @@ elif gemi_turu == "yat_tekne":
     fiyat_ek4 *= 0.50
     fiyat_ek5 *= 0.50
 
-# Esnek İndirim (Madde 13)
-fiyat_slop *= (1 - esnek_indirim)
-fiyat_ek1 *= (1 - esnek_indirim)
-fiyat_ek4 *= (1 - esnek_indirim)
-fiyat_ek5 *= (1 - esnek_indirim)
-
-# Atık Ücreti Toplamı
-atik_ucreti_eur = (
+# Baz Atık Ücreti (Tavan)
+atik_ucreti_tavan_eur = (
     (ucretli_slop * fiyat_slop) +
     (ucretli_ek1 * fiyat_ek1) +
     (ucretli_ek4 * fiyat_ek4) +
     (ucretli_ek5 * fiyat_ek5)
 )
 
-# Mesai Dışı Zammı (Pazar günü veya 08:00-17:00 dışı)
+# Mesai Dışı Zammı (Pazar günü veya 08:00-17:00 dışı) %25
 is_pazar = islem_tarihi.weekday() == 6
 is_mesai_disi = not (time(8, 0) <= islem_saati <= time(17, 0))
 
 if is_pazar or is_mesai_disi:
-    atik_ucreti_eur *= 1.25
+    atik_ucreti_tavan_eur *= 1.25
     mesai_zammi_var = True
 else:
     mesai_zammi_var = False
 
-toplam_eur = sabit_ucret_eur + atik_ucreti_eur
-toplam_tl = toplam_eur * eur_try_kuru
+# Madde 13 Uyarınca Taban Fiyat (Atık Ücretine %40 Maksimum İndirim)
+# Sabit ücret hariç atık ücretinden %40 indirim yapılabilir -> %60'ı ödenir.
+atik_ucreti_taban_eur = atik_ucreti_tavan_eur * 0.60
+
+toplam_tavan_eur = sabit_ucret_eur + atik_ucreti_tavan_eur
+toplam_taban_eur = sabit_ucret_eur + atik_ucreti_taban_eur
+
+toplam_tavan_tl = toplam_tavan_eur * eur_try_kuru
+toplam_taban_tl = toplam_taban_eur * eur_try_kuru
 
 # ---------------------------------------------------------
 # SONUÇ EKRANI
 # ---------------------------------------------------------
 
 st.divider()
-st.header("📊 Hesaplama Özeti")
+st.header("📊 Uygulanabilecek Ücret Sınırları")
 
-res1, res2, res3, res4 = st.columns(4)
+col1, col2 = st.columns(2)
 
-with res1:
-    st.metric("Sabit Ücret", f"{sabit_ucret_eur:,.2f} €")
-with res2:
-    st.metric("Atık Alım Ücreti", f"{atik_ucreti_eur:,.2f} €")
-with res3:
-    st.metric("Toplam (€)", f"{toplam_eur:,.2f} €")
-with res4:
-    st.metric("Toplam (₺)", f"{toplam_tl:,.2f} ₺")
+with col1:
+    st.markdown("### 🔴 AZAMİ (TAVAN) ÜCRET")
+    st.caption("Herhangi bir esnek indirim uygulanmamış üst sınır ücretidir.")
+    st.metric("Tavan Fiyat (€)", f"{toplam_tavan_eur:,.2f} €")
+    st.metric("Tavan Fiyat (₺)", f"{toplam_tavan_tl:,.2f} ₺")
+    st.write(f"*(Sabit Ücret: {sabit_ucret_eur:,.2f} € + Atık Ücreti: {atik_ucreti_tavan_eur:,.2f} €)*")
+
+with col2:
+    st.markdown("### 🟢 ASGARİ (TABAN) ÜCRET")
+    st.caption("Madde 13 uyarınca azami %40 indirim uygulanmış alt sınır ücretidir.")
+    st.metric("Taban Fiyat (€)", f"{toplam_taban_eur:,.2f} €")
+    st.metric("Taban Fiyat (₺)", f"{toplam_taban_tl:,.2f} ₺")
+    st.write(f"*(Sabit Ücret: {sabit_ucret_eur:,.2f} € + %40 İndirimli Atık Ücreti: {atik_ucreti_taban_eur:,.2f} €)*")
 
 if mesai_zammi_var:
     st.warning("⚠️ İşlem saati mesai dışı / tatil gününe denk geldiği için atık ücretlerine %25 zam uygulanmıştır.")
@@ -183,4 +187,4 @@ with st.expander("🔍 Detaylı Ücretsiz Hak ve Ücretlendirme Dökümü"):
     st.write(f"- **MARPOL EK-I Ücretsiz Hak:** {ek1_hak} m³ | **Ücrete Tabi:** {ucretli_ek1:.2f} m³")
     st.write(f"- **MARPOL EK-IV Ücretsiz Hak:** {ek4_hak} m³ | **Ücrete Tabi:** {ucretli_ek4:.2f} m³")
     st.write(f"- **MARPOL EK-V Ücretsiz Hak:** {ek5_hak} m³ | **Ücrete Tabi:** {ucretli_ek5:.2f} m³")
-    st.write(f"- **Slop / Kirli Balas,t Ücretli Miktar:** {ucretli_slop:.2f} m³")
+    st.write(f"- **Slop / Kirli Balast Ücretli Miktar:** {ucretli_slop:.2f} m³")

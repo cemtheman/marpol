@@ -8,7 +8,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# Canva içi ve mobilde düzgün görünüm için özel CSS
+# Düzgün görünüm için özel CSS
 st.markdown("""
     <style>
     .main { padding: 1.5rem; }
@@ -55,7 +55,7 @@ col_sol, col_sag = st.columns([1, 1], gap="large")
 with col_sol:
     st.subheader("📋 Gemi ve Sefer Bilgileri")
     
-    grt = st.number_input("Gemi Tonajı (GRT)", min_value=1, value=5000, step=100)
+    grt = st.number_input("Gemi Tonajı (GRT)", min_value=1, value=500, step=100)
     
     gemi_turu = st.selectbox(
         "Gemi Türü / Statüsü",
@@ -83,8 +83,8 @@ with col_sag:
     st.subheader("🛢️ Verilecek Atık Miktarları (m³)")
     
     slop_balast_m3 = st.number_input("MARPOL EK-I: Slop / Kirli Balast (m³)", min_value=0.0, value=0.0, step=0.5)
-    sintine_slac_yag_m3 = st.number_input("MARPOL EK-I: Sintine Suyu, Slaç, Atık Yağ (m³)", min_value=0.0, value=5.0, step=0.5)
-    ek4_pissu_m3 = st.number_input("MARPOL EK-IV: Pis Su (m³)", min_value=0.0, value=2.0, step=0.5)
+    sintine_slac_yag_m3 = st.number_input("MARPOL EK-I: Sintine Suyu, Slaç, Atık Yağ (m³)", min_value=0.0, value=0.0, step=0.5)
+    ek4_pissu_m3 = st.number_input("MARPOL EK-IV: Pis Su (m³)", min_value=0.0, value=1.0, step=0.5)
     ek5_evsel_m3 = st.number_input("MARPOL EK-V: Evsel / Katı Çöp (m³)", min_value=0.0, value=1.0, step=0.5)
 
 # ---------------------------------------------------------

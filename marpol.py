@@ -70,14 +70,21 @@ def get_sabit_ucret_ve_haklar(grt):
 # ---------------------------------------------------------
 
 logo_dosyasi = "mbblogo.svg"
+mbb_kurumsal_mavi = "#00407A"
 
 if os.path.exists(logo_dosyasi):
-    col_logo, col_title = st.columns([1, 4], gap="medium")
+    # Kolon oranları [1.5, 5.5] yapılarak logo alanı genişletildi
+    col_logo, col_title = st.columns([2, 4.5], gap="large")
+    
     with col_logo:
-        st.image(logo_dosyasi, width=170)
+        # Logo genişliği 280px'e çıkarıldı ve üstten hizalama eklendi
+        st.markdown("<div style='display: flex; align-items: center; height: 100%; margin-top: 10px;'>", unsafe_allow_html=True)
+        st.image(logo_dosyasi, width=500)
+        st.markdown("</div>", unsafe_allow_html=True)
+        
     with col_title:
-        st.title("Gemilerden Atık Alım Hizmeti Ücret Hesaplayıcı")
-        st.caption("Tebliğ No: 2009/3 Çerçevesinde Asgari ve Azami Fiyat Hesaplama Modülü")
+        st.markdown(f"<h1 style='color: {mbb_kurumsal_mavi}; margin-bottom: 0px;'>Gemilerden Atık Alım Hizmeti Ücret Hesaplayıcı</h1>", unsafe_allow_html=True)
+        st.markdown(f"<p style='color: {mbb_kurumsal_mavi}; font-size: 1.1rem; margin-top: 5px;'>Tebliğ No: 2009/3 Çerçevesinde Asgari ve Azami Fiyat Hesaplama Modülü</p>", unsafe_allow_html=True)
 else:
     st.title("🚢 Gemilerden Atık Alım Hizmeti Ücret Hesaplayıcı")
     st.caption("Tebliğ No: 2009/3 Çerçevesinde Asgari ve Azami Fiyat Hesaplama Modülü")

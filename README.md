@@ -1,1 +1,2 @@
-# marpol
+Bu uygulama, 2009/3 sayılı GEMİLERDEN ATIK ALINMASI VE ATIKLARIN KONTROLÜ YÖNETMELİĞİ ÇERÇEVESİNDE UYGULANACAK ÜCRETLER VE ESASLAR HAKKINDA TEBLİĞ
+uyarınca, gemilerden atık alımında uygulanabilecek en düşük ve en yüksek ücretlerin hesaplanabilmesi amacıyla hazırlanmıştır. 
